@@ -55,7 +55,7 @@ func (lb *LeaderBoard) GetLeader(c *gin.Context) {
     }
     for rows.Next() {
         err = rows.Scan(&player.Id, &player.Name, &player.Played, &player.Wins, &player.Losses, &player.Score)
-        player.Score = 100 * ((player.Score + 1) / 3)
+        player.Score = 200 * ((player.Score + 1) / 3) - 100
         players = append(players, player)
         if err != nil {
             if err == sql.ErrNoRows {
@@ -88,6 +88,8 @@ func (lb *LeaderBoard) PostResult(c *gin.Context) {
     getstmt, err := lb.db.Prepare("select ifnull(played, 0), ifnull(wins, 0), ifnull(losses, 0), ifnull(score, 0.0) from leaderboard where id = ?;")
     if err != nil {
         fmt.Println(err.Error())
+        c.JSON(500, `{"error":"sql error"}`)
+        return
     }
     defer getstmt.Close()
 
@@ -95,6 +97,8 @@ func (lb *LeaderBoard) PostResult(c *gin.Context) {
     updatestmt, err := lb.db.Prepare("insert into leaderboard (id, name, played, wins, losses, score) values (?,?,?,?,?,?) on duplicate key update played=values(played),wins=values(wins),losses=values(losses),score=values(score);")
     if err != nil {
         fmt.Println(err.Error())
+        c.JSON(500, `{"error":"sql error"}`)
+        return
     }
     defer updatestmt.Close()
 
@@ -117,7 +121,11 @@ func (lb *LeaderBoard) PostResult(c *gin.Context) {
                     return
                 }
             }
-            interpolatedscore = (1 - (float32(*v.Pos) / float32(numplayers - 1)))
+            if numplayers <= 1 {
+                interpolatedscore = 1
+            } else {
+                interpolatedscore = (1 - (float32(*v.Pos) / float32(numplayers - 1)))
+            }
             player.Score = player.Score * float32(player.Played)
             player.Played = player.Played + 1
             //score

@@ -25,8 +25,11 @@ func main() {
 
     leaderboard := &LeaderBoard{db: db}
 
-    router.GET("/leaderboard/*length", leaderboard.GetLeader)
-    router.POST("/leaderboard", leaderboard.PostResult)
+    statgroup := router.Group("/stats")
+    {
+        statgroup.GET("/leaderboard/*length", leaderboard.GetLeader)
+        statgroup.POST("/leaderboard", leaderboard.PostResult)
+    }
 
     router.Run(":8080")
 }
