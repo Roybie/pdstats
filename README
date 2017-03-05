@@ -1,0 +1,46 @@
+Stats Instructions:
+
+run initialisestats to setup stats database and initial data
+
+start stats server on port 8080 pdstatsserver
+
+Retrieve leaderboard with optional limit on results
+/stats/leaderboard/*limit
+
+Post finished game result
+/stats/leaderboard
+
+body:
+{
+    "id": int,                      //gameID
+    "players": [                    //in result order winner to loser
+        {
+            "id": int,              //playerID
+            "name": string          //playerName
+        }
+    ]
+}
+
+Retrieve player placement stats
+/stats/placements/:id
+
+returns in the form:
+{"1": 5, "2": 10, "last": 5}
+
+giving number of times player finished in different positions "1" being first
+
+Retrieve Head to Head game results
+/stats/headtohead/:id1/:id2
+
+format:
+[                                   //array of games players were in together
+    {
+        "id": int,                  //gameID
+        "players": [
+            {
+                "id": int,          //playerID
+                "position": int     //place in game player finished 0 for first
+            }
+        ]
+    }
+]
