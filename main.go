@@ -1,35 +1,38 @@
 package main
 
 import (
-    "database/sql"
-    "fmt"
+	"database/sql"
+	"fmt"
 
-    //"github.com/roybie/pdstats/leaderboard"
-    _ "github.com/go-sql-driver/mysql"
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-    db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/pdstats")
-    if err != nil {
-        fmt.Println(err.Error())
-    }
-    defer db.Close()
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/pdstats")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer db.Close()
 
-    err = db.Ping()
-    if err != nil {
-        fmt.Println(err.Error())
-    }
+	err = db.Ping()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
-    router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.Default()
 
-    leaderboard := &LeaderBoard{db: db}
+	leaderboard := &LeaderBoard{db: db}
+	playerstats := &PlayerStats{db: db}
 
-    statgroup := router.Group("/stats")
-    {
-        statgroup.GET("/leaderboard/*length", leaderboard.GetLeader)
-        statgroup.POST("/leaderboard", leaderboard.PostResult)
-    }
+	statgroup := router.Group("/stats")
+	{
+		statgroup.GET("/leaderboard/*length", leaderboard.GetLeader)
+		statgroup.POST("/leaderboard", leaderboard.PostResult)
+		statgroup.GET("/placements/:id", playerstats.GetPlacements)
+		statgroup.GET("/headtohead/:id1/:id2", playerstats.GetHeadToHead)
+	}
 
-    router.Run(":8080")
+	router.Run(":8080")
 }
